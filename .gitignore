@@ -1,0 +1,9 @@
+config/config.php
+*.zip
+storage/backups/*
+storage/logs/*
+storage/qr/*
+!storage/backups/.gitkeep
+!storage/logs/.gitkeep
+!storage/qr/.gitkeep
+.DS_Store
