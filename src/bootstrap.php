@@ -15,6 +15,11 @@ spl_autoload_register(static function (string $class): void {
     }
 });
 
+$vendorAutoload = dirname(__DIR__) . '/vendor/autoload.php';
+if (is_file($vendorAutoload)) {
+    require $vendorAutoload;
+}
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
@@ -23,4 +28,3 @@ require __DIR__ . '/helpers.php';
 
 $config = App\Core\Config::load();
 date_default_timezone_set((string) $config->get('app.timezone', 'Europe/Istanbul'));
-

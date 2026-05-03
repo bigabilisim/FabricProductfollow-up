@@ -70,6 +70,22 @@ final class NotificationService
         ]);
     }
 
+    public function webPush(string $title, string $body, string $type, ?int $deviceId = null, ?int $eventId = null, string $dedupe = '', string $url = '/admin'): void
+    {
+        $hash = hash('sha256', $type . '|webpush|' . $dedupe . '|' . $title . '|' . $body);
+        if ($this->alreadySent($type, 'webpush', $hash)) {
+            return;
+        }
+
+        try {
+            $sent = (new WebPushService())->sendToAll($title, $body, $url);
+            if ($sent > 0) {
+                $this->record($deviceId, $eventId, 'webpush', $type, 'webpush', $hash);
+            }
+        } catch (Throwable) {
+        }
+    }
+
     private function alreadySent(string $type, string $recipient, string $hash): bool
     {
         try {
@@ -112,4 +128,3 @@ final class NotificationService
         @file_get_contents($url, false, $context);
     }
 }
-

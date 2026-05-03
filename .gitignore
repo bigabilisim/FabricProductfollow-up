@@ -1,5 +1,11 @@
 config/config.php
 *.zip
+vendor/
+!public/assets/vendor/
+!public/assets/vendor/grapesjs/
+!public/assets/vendor/grapesjs/*
+public/uploads/*
+!public/uploads/.gitkeep
 storage/backups/*
 storage/logs/*
 storage/qr/*

@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Config;
 use App\Core\Database;
+use Minishlink\WebPush\VAPID;
 use PDO;
 use RuntimeException;
 
@@ -80,6 +81,7 @@ final class Installer
                 'bot_token' => trim((string) ($post['telegram_bot_token'] ?? '')),
                 'chat_id' => trim((string) ($post['telegram_chat_id'] ?? '')),
             ],
+            'webpush' => $this->webPushDefaults($defaults),
             'whatsapp' => [
                 'enabled' => !empty($post['whatsapp_enabled']),
                 'webhook_url' => trim((string) ($post['whatsapp_webhook_url'] ?? '')),
@@ -177,5 +179,24 @@ final class Installer
     {
         $emails = preg_split('/[\s,;]+/', $csv) ?: [];
         return array_values(array_unique(array_filter($emails, static fn (string $email): bool => filter_var($email, FILTER_VALIDATE_EMAIL) !== false)));
+    }
+
+    private function webPushDefaults(Config $defaults): array
+    {
+        $publicKey = (string) $defaults->get('webpush.public_key', '');
+        $privateKey = (string) $defaults->get('webpush.private_key', '');
+
+        if (($publicKey === '' || $privateKey === '') && class_exists(VAPID::class)) {
+            $keys = VAPID::createVapidKeys();
+            $publicKey = (string) $keys['publicKey'];
+            $privateKey = (string) $keys['privateKey'];
+        }
+
+        return [
+            'enabled' => true,
+            'public_key' => $publicKey,
+            'private_key' => $privateKey,
+            'subject' => (string) $defaults->get('webpush.subject', 'mailto:bigaofis@alarmbigabilisim.com'),
+        ];
     }
 }

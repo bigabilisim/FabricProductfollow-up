@@ -33,10 +33,13 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: pdo_mysql
+          extensions: pdo_mysql, curl, mbstring, openssl
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Syntax check
-        run: find . -path './.git' -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
+        run: find . -path './.git' -prune -o -path './vendor' -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
 
       - name: Smoke test
         run: php tests/smoke.php

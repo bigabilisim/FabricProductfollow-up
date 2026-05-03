@@ -1,0 +1,8 @@
+{
+    "name": "bigabilisim/qr-bakim-takip",
+    "description": "QR cihaz kimligi, bakim takibi, PWA ve Web Push bildirim uygulamasi.",
+    "license": "proprietary",
+    "require": {
+        "minishlink/web-push": "^9.0"
+    }
+}

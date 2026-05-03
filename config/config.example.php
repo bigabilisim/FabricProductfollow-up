@@ -7,6 +7,7 @@ return [
         'version' => '1.0V',
         'base_url' => 'http://qr-bakim.test',
         'base_path' => '',
+        'logo_path' => '',
         'timezone' => 'Europe/Istanbul',
         'maintenance_warning_days' => [30, 14, 7, 3, 1],
     ],
@@ -33,6 +34,12 @@ return [
         'enabled' => false,
         'bot_token' => '',
         'chat_id' => '',
+    ],
+    'webpush' => [
+        'enabled' => true,
+        'public_key' => '',
+        'private_key' => '',
+        'subject' => 'mailto:bigaofis@alarmbigabilisim.com',
     ],
     'whatsapp' => [
         'enabled' => false,

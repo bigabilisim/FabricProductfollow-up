@@ -6,11 +6,11 @@ namespace App\Core;
 
 final class View
 {
-    public static function render(string $template, array $data = [], string $layout = 'layout'): void
+    public static function render(string $viewName, array $data = [], string $layout = 'layout'): void
     {
-        $viewFile = dirname(__DIR__) . '/views/' . $template . '.php';
+        $viewFile = dirname(__DIR__) . '/views/' . $viewName . '.php';
         if (!is_file($viewFile)) {
-            throw new \RuntimeException("View bulunamadi: {$template}");
+            throw new \RuntimeException("View bulunamadi: {$viewName}");
         }
 
         extract($data, EXTR_SKIP);

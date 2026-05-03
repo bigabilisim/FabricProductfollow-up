@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Fabrika QR">
+  <rect width="512" height="512" rx="96" fill="#102522"/>
+  <path fill="#ffffff" d="M96 128h112v112H96V128Zm40 40v32h32v-32h-32Zm168-40h112v112H304V128Zm40 40v32h32v-32h-32ZM96 304h112v112H96V304Zm40 40v32h32v-32h-32Zm184-40h40v40h-40v-40Zm56 0h40v40h-40v-40Zm-112 56h40v40h-40v-40Zm56 56h40v-40h40v40h-40v40h-40v-40Zm-56 0h40v40h-40v-40Z"/>
+  <path fill="#2dd4bf" d="M248 128h32v32h-32v-32Zm0 64h32v48h-32v-48Zm-40 72h72v40h-72v-40Zm96 0h32v24h-32v-24Z"/>
+</svg>

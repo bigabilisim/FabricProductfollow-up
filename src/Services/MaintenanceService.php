@@ -131,10 +131,26 @@ final class MaintenanceService
             $html = '<p><strong>' . e($device['code']) . '</strong> kodlu cihaz icin bakim tarihi yaklasiyor.</p>'
                 . '<p>Planlanan bakim tarihi: <strong>' . e((string) $device['next_maintenance_at']) . '</strong></p>'
                 . '<p>Kalan gun: <strong>' . $daysLeft . '</strong></p>';
+            $mail = (new TemplateService())->renderMail('maintenance_upcoming', [
+                'device_code' => (string) $device['code'],
+                'maintenance_date' => (string) $device['next_maintenance_at'],
+                'days_left' => (string) $daysLeft,
+            ], $subject, $html);
+            $subject = $mail['subject'];
+            $html = $mail['html'];
 
             $this->notifications->mail($emails, $subject, $html, 'maintenance.upcoming.' . $daysLeft, (int) $device['id'], null, (string) $device['next_maintenance_at']);
             $this->notifications->telegram($subject . ' - ' . $device['next_maintenance_at']);
             $this->notifications->whatsapp($subject . ' - ' . $device['next_maintenance_at']);
+            $this->notifications->webPush(
+                $subject,
+                'Planlanan bakim: ' . (string) $device['next_maintenance_at'] . '. Kalan gun: ' . $daysLeft,
+                'maintenance.upcoming.' . $daysLeft,
+                (int) $device['id'],
+                null,
+                (string) $device['next_maintenance_at'],
+                '/admin/devices/' . (int) $device['id']
+            );
             $sent += count($emails);
         }
 
@@ -153,11 +169,22 @@ final class MaintenanceService
             }
 
             $emails = DeviceRepository::emailsFromDevice($device);
-            $html = $this->dueMailHtml($device, $event);
             $subject = $device['code'] . ' bakimi yapildi mi?';
+            $mail = $this->dueMail($device, $event, $subject);
+            $subject = $mail['subject'];
+            $html = $mail['html'];
             $this->notifications->mail($emails, $subject, $html, 'maintenance.due', (int) $device['id'], (int) $event['id'], (string) $event['response_token']);
             $this->notifications->telegram($subject);
             $this->notifications->whatsapp($subject);
+            $this->notifications->webPush(
+                $subject,
+                'Bakim gunu geldi. 48 saat icinde durum bildirimi bekleniyor.',
+                'maintenance.due',
+                (int) $device['id'],
+                (int) $event['id'],
+                (string) $event['response_token'],
+                '/admin/devices/' . (int) $device['id']
+            );
             $sent += count($emails);
         }
 
@@ -176,7 +203,21 @@ final class MaintenanceService
             $emails = DeviceRepository::emailsFromDevice($event);
             $subject = $event['code'] . ' bakim cevabi alinmadi';
             $html = '<p>48 saatlik cevap suresi doldu. Bakimin durumu icin teknik sorumluya ulasilmasi onerilir.</p>';
+            $mail = (new TemplateService())->renderMail('maintenance_no_response', [
+                'device_code' => (string) $event['code'],
+            ], $subject, $html);
+            $subject = $mail['subject'];
+            $html = $mail['html'];
             $this->notifications->mail($emails, $subject, $html, 'maintenance.no_response', (int) $event['device_id'], (int) $event['id'], (string) $event['response_token']);
+            $this->notifications->webPush(
+                $subject,
+                '48 saatlik cevap suresi doldu.',
+                'maintenance.no_response',
+                (int) $event['device_id'],
+                (int) $event['id'],
+                (string) $event['response_token'],
+                '/admin/devices/' . (int) $event['device_id']
+            );
         }
 
         return count($expired);
@@ -206,20 +247,27 @@ final class MaintenanceService
         return $this->eventByToken($token) ?? [];
     }
 
-    private function dueMailHtml(array $device, array $event): string
+    private function dueMail(array $device, array $event, string $subject): array
     {
         $token = (string) $event['response_token'];
         $done = url('/maintenance/respond?token=' . urlencode($token) . '&status=done');
         $notDone = url('/maintenance/respond?token=' . urlencode($token) . '&status=not_done');
         $rescheduled = url('/maintenance/respond?token=' . urlencode($token) . '&status=rescheduled');
 
-        return '<p><strong>' . e($device['code']) . '</strong> kodlu cihaz icin bakim gunu geldi.</p>'
+        $html = '<p><strong>' . e($device['code']) . '</strong> kodlu cihaz icin bakim gunu geldi.</p>'
             . '<p>Lutfen 48 saat icinde asagidaki butonlardan biriyle durum bildirin.</p>'
             . '<p>'
             . '<a href="' . e($done) . '" style="display:inline-block;padding:10px 14px;background:#087443;color:#fff;text-decoration:none;border-radius:6px;">Yapildi</a> '
             . '<a href="' . e($notDone) . '" style="display:inline-block;padding:10px 14px;background:#b42318;color:#fff;text-decoration:none;border-radius:6px;">Yapilmadi</a> '
             . '<a href="' . e($rescheduled) . '" style="display:inline-block;padding:10px 14px;background:#b45309;color:#fff;text-decoration:none;border-radius:6px;">Baska zamana planlandi</a>'
             . '</p>';
+
+        return (new TemplateService())->renderMail('maintenance_due', [
+            'device_code' => (string) $device['code'],
+            'done_url' => $done,
+            'not_done_url' => $notDone,
+            'rescheduled_url' => $rescheduled,
+        ], $subject, $html);
     }
 
     private function sendHazardMail(array $device, array $event): void
@@ -238,7 +286,23 @@ final class MaintenanceService
             . '<p>' . nl2br(e($hazard)) . '</p>'
             . '<p><a href="' . e($ackUrl) . '" style="display:inline-block;padding:10px 14px;background:#102522;color:#fff;text-decoration:none;border-radius:6px;">Okudum, bilgi sahibiyim</a></p>';
 
-        $this->notifications->mail(DeviceRepository::emailsFromDevice($device), $device['code'] . ' bakim riski bildirimi', $html, 'maintenance.hazard', (int) $device['id'], (int) $event['id'], $ackToken);
+        $subject = $device['code'] . ' bakim riski bildirimi';
+        $mail = (new TemplateService())->renderMail('maintenance_hazard', [
+            'device_code' => (string) $device['code'],
+            'hazard_note' => $hazard,
+            'ack_url' => $ackUrl,
+        ], $subject, $html);
+
+        $this->notifications->mail(DeviceRepository::emailsFromDevice($device), $mail['subject'], $mail['html'], 'maintenance.hazard', (int) $device['id'], (int) $event['id'], $ackToken);
+        $this->notifications->webPush(
+            $device['code'] . ' bakim riski bildirimi',
+            'Bakim yapilmadi olarak isaretlendi. Risk bildirimi gonderildi.',
+            'maintenance.hazard',
+            (int) $device['id'],
+            (int) $event['id'],
+            $ackToken,
+            '/admin/devices/' . (int) $device['id']
+        );
     }
 
     private function warningDays(array $device): array
@@ -258,4 +322,3 @@ final class MaintenanceService
         return (int) $today->diff($target)->format('%r%a');
     }
 }
-

@@ -47,9 +47,24 @@ a {
 
 .brand {
     display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+}
+
+.brand-logo {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: #fff;
+    padding: 4px;
+}
+
+.brand-text {
+    display: flex;
     flex-direction: column;
     gap: 2px;
-    font-weight: 700;
 }
 
 .brand small {
@@ -227,6 +242,127 @@ textarea {
 .field-note {
     margin: 6px 0 0;
     font-size: 13px;
+}
+
+.settings-logo-row {
+    display: grid;
+    grid-template-columns: 132px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+    margin-bottom: 22px;
+}
+
+.logo-preview {
+    width: 132px;
+    height: 92px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: #f9fbfa;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    overflow: hidden;
+}
+
+.logo-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    padding: 8px;
+}
+
+.checkline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-weight: 400;
+}
+
+.checkline input {
+    width: auto;
+    min-height: 0;
+}
+
+.web-push-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 14px;
+    margin-bottom: 22px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #f9fbfa;
+}
+
+.web-push-panel p {
+    margin: 0 0 7px;
+}
+
+.web-push-status {
+    min-height: 20px;
+    margin: 8px 0 0;
+    font-weight: 700;
+}
+
+.web-push-status.ok {
+    color: var(--ok);
+}
+
+.web-push-status.error {
+    color: var(--danger);
+}
+
+.template-meta {
+    margin-bottom: 16px;
+}
+
+.template-test-mail {
+    display: grid;
+    grid-template-columns: minmax(220px, 360px) auto;
+    gap: 12px;
+    align-items: center;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+.template-builder-wrap {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.template-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    background: #f9fbfa;
+}
+
+.template-toolbar code {
+    display: inline-block;
+    margin: 2px 3px;
+}
+
+.template-preview-frame {
+    width: 100%;
+    min-height: 620px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.template-preview-test {
+    margin: 14px 0;
 }
 
 .label-with-info {
@@ -418,6 +554,23 @@ th {
 @media (max-width: 780px) {
     .grid.cols-2,
     .grid.cols-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-logo-row {
+        grid-template-columns: 1fr;
+    }
+
+    .web-push-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .template-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .template-test-mail {
         grid-template-columns: 1fr;
     }
 

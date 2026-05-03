@@ -1,16 +1,20 @@
 <?php
 
+$app = is_array($app ?? null) ? $app : [];
 $mail = is_array($mail ?? null) ? $mail : [];
 $backupRecipients = $mail['backup_recipients'] ?? [];
 if (!is_array($backupRecipients)) {
     $backupRecipients = [];
 }
 $hasPassword = (string) ($mail['smtp_password'] ?? '') !== '';
+$logoPath = (string) ($app['logo_path'] ?? '');
+$webPushAvailable = (bool) ($webPushAvailable ?? false);
+$webPushSubscriptionCount = (int) ($webPushSubscriptionCount ?? 0);
 ?>
 <div class="section-title">
     <div>
         <h1>Ayarlar</h1>
-        <p class="muted">Mail gonderimi ve gunluk yedek alicilari.</p>
+        <p class="muted">Uygulama logosu, site ikonu, mail gonderimi ve gunluk yedek alicilari.</p>
     </div>
     <div class="actions">
         <a class="btn" href="/admin">Panele Don</a>
@@ -18,8 +22,46 @@ $hasPassword = (string) ($mail['smtp_password'] ?? '') !== '';
 </div>
 
 <section class="panel">
-    <form method="post" action="/admin/settings">
+    <form method="post" action="/admin/settings" enctype="multipart/form-data">
         <?= csrf_field() ?>
+
+        <h2>Logo</h2>
+        <div class="settings-logo-row">
+            <div class="logo-preview">
+                <?php if ($logoPath !== ''): ?>
+                    <img src="<?= e(app_path($logoPath)) ?>" alt="Site logosu">
+                <?php else: ?>
+                    <span>Logo Yok</span>
+                <?php endif; ?>
+            </div>
+            <div class="field">
+                <label for="site_logo">Logo dosyasi</label>
+                <input id="site_logo" name="site_logo" type="file" accept="image/png,image/jpeg,image/webp">
+                <p class="muted field-note">PNG, JPG veya WebP yukleyin. En fazla 2 MB. Bu logo ust barda ve tarayici sekme ikonunda kullanilir.</p>
+                <?php if ($logoPath !== ''): ?>
+                    <label class="checkline">
+                        <input name="remove_logo" type="checkbox" value="1">
+                        <span>Mevcut logoyu kaldir</span>
+                    </label>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <h2>Web Push Bildirimleri</h2>
+        <div class="web-push-panel" data-web-push-panel>
+            <div>
+                <p class="muted">Bu tarayicida web push izni verildiginde bakim hatirlatmalari ve kritik durumlar anlik bildirim olarak gelir.</p>
+                <p class="muted field-note">Bu kullanici icin aktif abonelik: <strong data-web-push-count><?= $webPushSubscriptionCount ?></strong></p>
+                <?php if (!$webPushAvailable): ?>
+                    <p class="flash error">Web Push kutuphanesi bulunamadi. Sunucuda <code>composer install</code> calistirilmalidir.</p>
+                <?php endif; ?>
+                <p class="web-push-status muted" data-web-push-status role="status"></p>
+            </div>
+            <div class="actions">
+                <button class="btn primary" type="button" data-web-push-enable <?= $webPushAvailable ? '' : 'disabled' ?>>Bildirimleri Ac</button>
+                <button class="btn" type="button" data-web-push-test <?= $webPushAvailable ? '' : 'disabled' ?>>Test Bildirimi Gonder</button>
+            </div>
+        </div>
 
         <h2>SMTP Mail Ayarlari</h2>
         <div class="grid cols-3">

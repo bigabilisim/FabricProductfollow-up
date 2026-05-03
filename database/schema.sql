@@ -79,6 +79,40 @@ CREATE TABLE IF NOT EXISTS notification_logs (
     CONSTRAINT fk_notification_event FOREIGN KEY (maintenance_event_id) REFERENCES maintenance_events(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS web_push_subscriptions (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NULL,
+    endpoint TEXT NOT NULL,
+    endpoint_hash CHAR(64) NOT NULL UNIQUE,
+    p256dh VARCHAR(255) NOT NULL,
+    auth_token VARCHAR(255) NOT NULL,
+    content_encoding VARCHAR(40) NOT NULL DEFAULT 'aes128gcm',
+    user_agent VARCHAR(255) NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    last_error TEXT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NULL,
+    INDEX idx_web_push_user_active (user_id, active),
+    CONSTRAINT fk_web_push_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS content_templates (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    type VARCHAR(40) NOT NULL,
+    slug VARCHAR(120) NOT NULL,
+    name VARCHAR(190) NOT NULL,
+    subject VARCHAR(255) NULL,
+    html MEDIUMTEXT NOT NULL,
+    css MEDIUMTEXT NULL,
+    project_json MEDIUMTEXT NULL,
+    is_system TINYINT(1) NOT NULL DEFAULT 0,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NULL,
+    UNIQUE KEY uniq_content_template_slug (type, slug),
+    INDEX idx_content_templates_type_active (type, active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS backups (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     file_name VARCHAR(255) NOT NULL,

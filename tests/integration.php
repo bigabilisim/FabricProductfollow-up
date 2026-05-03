@@ -50,6 +50,29 @@ try {
     }
 
     $repo = new App\Repositories\DeviceRepository();
+    $webPush = new App\Services\WebPushService();
+    if ($webPush->isAvailable() && $webPush->publicKey() === '') {
+        throw new RuntimeException('Web Push public key generation failed.');
+    }
+
+    if ($webPush->subscriptionCount() !== 0) {
+        throw new RuntimeException('Web Push subscription table initialization failed.');
+    }
+
+    $templates = new App\Services\TemplateService();
+    if (count($templates->all('mail')) < 4 || count($templates->all('report')) < 1) {
+        throw new RuntimeException('Default content templates were not created.');
+    }
+
+    $renderedMail = $templates->renderMail('maintenance_upcoming', [
+        'device_code' => 'ANA-TR-2026-1',
+        'maintenance_date' => '2026-06-30',
+        'days_left' => '30',
+    ], 'Fallback', '<p>Fallback</p>');
+    if (!str_contains($renderedMail['html'], 'ANA-TR-2026-1')) {
+        throw new RuntimeException('Mail template rendering failed.');
+    }
+
     $id = $repo->create([
         'company_code' => 'ANA',
         'country_code' => 'TR',

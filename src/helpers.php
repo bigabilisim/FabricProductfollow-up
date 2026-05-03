@@ -109,7 +109,7 @@ function csrf_field(): string
 
 function verify_csrf(): void
 {
-    $token = $_POST['_csrf'] ?? '';
+    $token = $_POST['_csrf'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
     if (!is_string($token) || !hash_equals(csrf_token(), $token)) {
         unset($_SESSION['_csrf']);
         flash('Oturum guvenlik dogrulamasi basarisiz oldu. Lutfen formu tekrar gonderin.', 'error');
