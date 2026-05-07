@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Core\Config;
 use App\Core\Database;
 use DateInterval;
 use DateTimeImmutable;
@@ -261,7 +262,7 @@ final class DeviceRepository
             'serial_number' => trim((string) ($data['serial_number'] ?? '')),
             'installed_at' => $installedAt,
             'maintenance_period_days' => $period,
-            'notify_before_days' => trim((string) ($data['notify_before_days'] ?? '30,14,7,3,1')),
+            'notify_before_days' => $this->notifyDaysCsv($data['notify_before_days'] ?? ''),
             'responsible_emails' => trim((string) ($data['responsible_emails'] ?? '')),
             'hazard_note' => trim((string) ($data['hazard_note'] ?? '')),
             'notes' => trim((string) ($data['notes'] ?? '')),
@@ -295,6 +296,26 @@ final class DeviceRepository
         $data['production_year'] = $year;
 
         return $data;
+    }
+
+    private function notifyDaysCsv(mixed $value): string
+    {
+        $days = self::normalizeDayList($value);
+        if ($days === []) {
+            $days = self::normalizeDayList(Config::load()->get('app.maintenance_warning_days', [30, 14, 7, 3, 1]));
+        }
+
+        return implode(',', $days ?: [30, 14, 7, 3, 1]);
+    }
+
+    public static function normalizeDayList(mixed $value): array
+    {
+        $items = is_array($value) ? $value : (preg_split('/[\s,;]+/', (string) $value) ?: []);
+        $days = array_map('intval', $items);
+        $days = array_values(array_unique(array_filter($days, static fn (int $day): bool => $day > 0)));
+        rsort($days, SORT_NUMERIC);
+
+        return $days;
     }
 
     private function nextMachineNo(string $companyCode, string $countryCode, int $year): int

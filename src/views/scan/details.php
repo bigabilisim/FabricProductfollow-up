@@ -2,9 +2,9 @@
     <div class="section-title">
         <div>
             <h1><?= e($device['code']) ?></h1>
-            <p class="muted">Dogrulanmis cihaz bilgileri</p>
+            <p class="muted">Yetkili linki ile acilan cihaz bilgileri</p>
         </div>
-        <span class="badge">1 saat aktif</span>
+        <span class="badge">48 saat aktif</span>
     </div>
 
     <table>
@@ -16,4 +16,3 @@
         <tr><th>Notlar</th><td><?= nl2br(e($device['notes'] ?: '-')) ?></td></tr>
     </table>
 </div>
-

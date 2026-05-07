@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Config;
 use App\Repositories\DeviceRepository;
 use App\Services\AuditLogger;
 use App\Services\QrCode;
@@ -48,6 +49,7 @@ final class DeviceController
             'device' => null,
             'action' => '/admin/devices',
             'identity' => $identity,
+            'notificationDayOptions' => $this->notificationDayOptions(),
         ]);
     }
 
@@ -84,6 +86,7 @@ final class DeviceController
             'device' => $device,
             'action' => '/admin/devices/' . $device['id'],
             'identity' => $identity,
+            'notificationDayOptions' => $this->notificationDayOptions(),
         ]);
     }
 
@@ -175,5 +178,19 @@ final class DeviceController
         }
 
         return $device;
+    }
+
+    private function notificationDayOptions(): array
+    {
+        $days = Config::load()->get('app.maintenance_warning_days', [30, 14, 7, 3, 1]);
+        if (!is_array($days)) {
+            $days = preg_split('/[\s,;]+/', (string) $days) ?: [];
+        }
+
+        $days = array_map('intval', $days);
+        $days = array_values(array_unique(array_filter($days, static fn (int $day): bool => $day > 0)));
+        rsort($days, SORT_NUMERIC);
+
+        return $days ?: [30, 14, 7, 3, 1];
     }
 }

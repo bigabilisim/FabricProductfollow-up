@@ -10,6 +10,7 @@ $hasPassword = (string) ($mail['smtp_password'] ?? '') !== '';
 $logoPath = (string) ($app['logo_path'] ?? '');
 $webPushAvailable = (bool) ($webPushAvailable ?? false);
 $webPushSubscriptionCount = (int) ($webPushSubscriptionCount ?? 0);
+$maintenanceWarningDays = \App\Repositories\DeviceRepository::normalizeDayList($app['maintenance_warning_days'] ?? [30, 14, 7, 3, 1]) ?: [30, 14, 7, 3, 1];
 ?>
 <div class="section-title">
     <div>
@@ -45,6 +46,26 @@ $webPushSubscriptionCount = (int) ($webPushSubscriptionCount ?? 0);
                     </label>
                 <?php endif; ?>
             </div>
+        </div>
+
+        <h2>Bakim Bildirim Gunleri</h2>
+        <div class="field">
+            <label for="maintenance_warning_day_input">Varsayilan bildirim gunleri</label>
+            <div class="day-picker" data-day-picker>
+                <input
+                    id="maintenance_warning_days"
+                    name="maintenance_warning_days"
+                    type="hidden"
+                    value="<?= e(implode(',', $maintenanceWarningDays)) ?>"
+                    data-day-values
+                >
+                <div class="day-chips" data-day-chips aria-live="polite"></div>
+                <div class="day-add-row">
+                    <input id="maintenance_warning_day_input" type="number" min="1" step="1" placeholder="Gun" data-day-input>
+                    <button class="btn" type="button" data-day-add>+ Gun Ekle</button>
+                </div>
+            </div>
+            <p class="muted field-note">Cihaz ekleme ve duzenleme ekraninda hizli secenek olarak bu gunler gosterilir.</p>
         </div>
 
         <h2>Web Push Bildirimleri</h2>

@@ -28,6 +28,7 @@ $logoUrl = $logoPath !== '' ? app_path($logoPath) : '';
     <?php endif; ?>
     <link rel="stylesheet" href="/assets/app.css">
     <script src="<?= e(app_path('/assets/pwa.js')) ?>" defer></script>
+    <script src="<?= e(app_path('/assets/day-picker.js')) ?>" defer></script>
 </head>
 <body>
 <div class="shell">

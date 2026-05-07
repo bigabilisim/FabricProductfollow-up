@@ -8,6 +8,8 @@ $identity = is_array($identity ?? null) ? $identity : [
     'machine_no' => (int) ($device['machine_no'] ?? 1),
     'code' => \App\Repositories\DeviceRepository::buildCode((string) ($device['company_code'] ?? 'ANA'), (string) ($device['country_code'] ?? 'TR'), (int) ($device['production_year'] ?? date('Y')), (int) ($device['machine_no'] ?? 1)),
 ];
+$notificationDayOptions = \App\Repositories\DeviceRepository::normalizeDayList($notificationDayOptions ?? [30, 14, 7, 3, 1]) ?: [30, 14, 7, 3, 1];
+$selectedNotificationDays = \App\Repositories\DeviceRepository::normalizeDayList($device['notify_before_days'] ?? $notificationDayOptions) ?: $notificationDayOptions;
 ?>
 <div class="section-title">
     <div>
@@ -62,8 +64,28 @@ $identity = is_array($identity ?? null) ? $identity : [
 
         <div class="grid cols-2">
             <div class="field">
-                <label for="notify_before_days">Bildirim gunleri</label>
-                <input id="notify_before_days" name="notify_before_days" value="<?= $value('notify_before_days', '30,14,7,3,1') ?>">
+                <label for="notify_day_input">Bildirim gunleri</label>
+                <div class="day-picker" data-day-picker data-day-options="<?= e(json_encode($notificationDayOptions, JSON_UNESCAPED_UNICODE) ?: '[]') ?>">
+                    <input
+                        id="notify_before_days"
+                        name="notify_before_days"
+                        type="hidden"
+                        value="<?= e(implode(',', $selectedNotificationDays)) ?>"
+                        data-day-values
+                    >
+                    <div class="day-chips" data-day-chips aria-live="polite"></div>
+                    <div class="day-add-row">
+                        <input id="notify_day_input" type="number" min="1" step="1" placeholder="Gun" data-day-input>
+                        <button class="btn" type="button" data-day-add>+ Gun Ekle</button>
+                    </div>
+                    <div class="day-options" data-day-options-list>
+                        <span class="muted">Ayarlar:</span>
+                        <?php foreach ($notificationDayOptions as $day): ?>
+                            <button class="day-option" type="button" data-day-option="<?= e((string) $day) ?>"><?= e((string) $day) ?> gun</button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <p class="muted field-note">Buradaki hizli secenekler Ayarlar &gt; Bakim Bildirim Gunleri alanindan gelir.</p>
             </div>
             <div class="field">
                 <label for="responsible_emails" class="label-with-info">

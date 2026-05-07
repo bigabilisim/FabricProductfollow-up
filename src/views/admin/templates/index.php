@@ -12,6 +12,9 @@ $titleText = $isMail ? 'Mail Sablonlari' : 'Rapor Sablonlari';
     <div class="actions">
         <a class="btn" href="/admin/templates?type=mail">Mail</a>
         <a class="btn" href="/admin/templates?type=report">Rapor</a>
+        <?php if ($isMail): ?>
+            <a class="btn" href="/admin/templates/test-platform">Test Platformu</a>
+        <?php endif; ?>
         <a class="btn primary" href="/admin/templates/create?type=<?= e($type) ?>">Yeni Sablon</a>
     </div>
 </div>

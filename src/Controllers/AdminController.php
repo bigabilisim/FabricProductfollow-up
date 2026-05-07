@@ -105,6 +105,7 @@ final class AdminController
 
             $config['app'] = is_array($config['app'] ?? null) ? $config['app'] : [];
             $config['app']['logo_path'] = $this->logoPathFromRequest((string) ($config['app']['logo_path'] ?? ''));
+            $config['app']['maintenance_warning_days'] = $this->csvNumbers((string) ($_POST['maintenance_warning_days'] ?? ''));
 
             $config['mail'] = [
                 'driver' => in_array($driver, ['mail', 'smtp'], true) ? $driver : 'smtp',
@@ -199,6 +200,15 @@ final class AdminController
     {
         $emails = preg_split('/[\s,;]+/', $csv) ?: [];
         return array_values(array_unique(array_filter($emails, static fn (string $email): bool => filter_var($email, FILTER_VALIDATE_EMAIL) !== false)));
+    }
+
+    private function csvNumbers(string $csv): array
+    {
+        $numbers = array_map('intval', preg_split('/[\s,;]+/', $csv) ?: []);
+        $numbers = array_values(array_unique(array_filter($numbers, static fn (int $number): bool => $number > 0)));
+        rsort($numbers, SORT_NUMERIC);
+
+        return $numbers ?: [30, 14, 7, 3, 1];
     }
 
     private function webPushSubscriptionCount(): int

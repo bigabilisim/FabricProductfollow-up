@@ -34,6 +34,8 @@ return static function (Router $router): void {
     $router->post('/admin/settings', [AdminController::class, 'updateSettings']);
 
     $router->get('/admin/templates', [TemplateController::class, 'index']);
+    $router->get('/admin/templates/test-platform', [TemplateController::class, 'testPlatform']);
+    $router->post('/admin/templates/test-platform', [TemplateController::class, 'sendTestPlatform']);
     $router->get('/admin/templates/create', [TemplateController::class, 'create']);
     $router->post('/admin/templates', [TemplateController::class, 'store']);
     $router->get('/admin/templates/{id}/edit', [TemplateController::class, 'edit']);
@@ -62,8 +64,8 @@ return static function (Router $router): void {
     $router->get('/admin/devices/{id}/label', [DeviceController::class, 'label']);
 
     $router->get('/scan', [ScanController::class, 'show']);
-    $router->post('/scan/request-code', [ScanController::class, 'requestCode']);
-    $router->post('/scan/verify-code', [ScanController::class, 'verifyCode']);
+    $router->post('/scan/request-link', [ScanController::class, 'requestLink']);
+    $router->post('/scan/request-code', [ScanController::class, 'requestLink']);
     $router->get('/device/{id}/details', [ScanController::class, 'details']);
 
     $router->get('/maintenance/respond', [MaintenanceController::class, 'respond']);

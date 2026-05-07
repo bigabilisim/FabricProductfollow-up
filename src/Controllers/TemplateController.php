@@ -11,6 +11,8 @@ use Throwable;
 
 final class TemplateController
 {
+    private const MAX_TEST_RECIPIENTS = 20;
+
     private TemplateService $templates;
 
     public function __construct()
@@ -100,6 +102,72 @@ final class TemplateController
         redirect('/admin/templates/' . (int) $id . '/edit');
     }
 
+    public function testPlatform(): void
+    {
+        require_auth();
+
+        $templates = $this->templates->all('mail');
+        $selectedTemplate = $this->selectedMailTemplate($templates, (int) ($_GET['template_id'] ?? 0));
+        $variables = $this->templates->sampleVariables();
+
+        view('admin/templates/test_platform', [
+            'title' => 'Mail Test Platformu',
+            'templates' => $templates,
+            'selectedTemplate' => $selectedTemplate,
+            'rendered' => $selectedTemplate ? $this->templates->renderTemplate($selectedTemplate, $variables) : null,
+            'variables' => $variables,
+        ]);
+    }
+
+    public function sendTestPlatform(): void
+    {
+        require_auth();
+        verify_csrf();
+
+        $templateId = (int) ($_POST['template_id'] ?? 0);
+        try {
+            $template = $this->find($templateId);
+            if ((string) ($template['type'] ?? '') !== 'mail') {
+                throw new \RuntimeException('Sadece mail sablonlari test edilebilir.');
+            }
+
+            $emails = $this->emailsFromText((string) ($_POST['test_emails'] ?? ''));
+            if ($emails === []) {
+                throw new \RuntimeException('Gecerli test mail adresi girin.');
+            }
+
+            $rendered = $this->templates->renderTemplate($template, $this->templates->sampleVariables());
+            $mailer = new Mailer();
+            $sent = [];
+            $failed = [];
+
+            foreach ($emails as $email) {
+                try {
+                    $mailer->send($email, '[TEST] ' . $rendered['subject'], $rendered['html']);
+                    $sent[] = $email;
+                } catch (Throwable) {
+                    $failed[] = $email;
+                }
+            }
+
+            AuditLogger::log(
+                'template.test_platform.sent',
+                'id=' . $templateId . ' sent=' . count($sent) . ' failed=' . count($failed)
+            );
+
+            if ($failed !== []) {
+                $message = count($sent) . ' test maili gonderildi. Gonderilemeyen adresler: ' . implode(', ', $failed);
+                flash($message, 'error');
+            } else {
+                flash('Test maili gonderildi: ' . implode(', ', $sent));
+            }
+        } catch (Throwable $exception) {
+            flash('Test maili gonderilemedi: ' . $exception->getMessage(), 'error');
+        }
+
+        redirect('/admin/templates/test-platform?template_id=' . $templateId);
+    }
+
     public function testMail(string $id): void
     {
         require_auth();
@@ -164,6 +232,49 @@ final class TemplateController
         }
 
         return $template;
+    }
+
+    private function selectedMailTemplate(array $templates, int $templateId): ?array
+    {
+        foreach ($templates as $template) {
+            if ($templateId > 0 && (int) $template['id'] === $templateId) {
+                return $template;
+            }
+        }
+
+        return $templates[0] ?? null;
+    }
+
+    private function emailsFromText(string $value): array
+    {
+        $tokens = preg_split('/[\s,;]+/', trim($value)) ?: [];
+        $emails = [];
+        $invalid = [];
+
+        foreach ($tokens as $token) {
+            $email = trim($token);
+            if ($email === '') {
+                continue;
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $invalid[] = $email;
+                continue;
+            }
+
+            $emails[strtolower($email)] = $email;
+        }
+
+        if ($invalid !== []) {
+            throw new \RuntimeException('Gecersiz mail adresi: ' . implode(', ', array_slice($invalid, 0, 3)));
+        }
+
+        $emails = array_values($emails);
+        if (count($emails) > self::MAX_TEST_RECIPIENTS) {
+            throw new \RuntimeException('Tek testte en fazla ' . self::MAX_TEST_RECIPIENTS . ' mail adresi kullanilabilir.');
+        }
+
+        return $emails;
     }
 
     private function dataFromPost(): array
